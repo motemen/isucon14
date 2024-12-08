@@ -783,7 +783,7 @@ func getChairStats(ctx context.Context, tx *sqlx.Tx, chairID string) (appGetNoti
 	err := tx.GetContext(
 		ctx,
 		&dbstats,
-		`SELECT total_rides_count, total_evaluation_avg FROM chair_stats WHERE chair_id = ?`,
+		`SELECT total_rides_count, total_evaluation FROM chair_stats WHERE chair_id = ?`,
 		chairID,
 	)
 
