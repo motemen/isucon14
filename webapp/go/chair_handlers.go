@@ -123,20 +123,24 @@ func chairPostCoordinate(w http.ResponseWriter, r *http.Request) {
 	// 今回の移動距離がわかる
 	delta := 0
 	if errors.Is(err, sql.ErrNoRows) {
+		if _, err := tx.ExecContext(
+			ctx,
+			`INSERT INTO latest_chair_locations (chair_id, latitude, longitude) VALUES (?, ?, ?)`,
+			chair.ID, req.Latitude, req.Longitude,
+		); err != nil {
+			writeError(w, http.StatusInternalServerError, err)
+			return
+		}
 	} else {
 		delta = abs(latestLocation.Latitude-req.Latitude) + abs(latestLocation.Longitude-req.Longitude)
-	}
-
-	// 最後の位置を更新
-	if _, err := tx.ExecContext(
-		ctx,
-		`INSERT INTO latest_chair_locations (chair_id, latitude, longitude) VALUES (?, ?, ?)
-		ON DUPLICATE KEY UPDATE latitude = ?, longitude = ?`,
-		chair.ID, req.Latitude, req.Longitude,
-		req.Latitude, req.Longitude,
-	); err != nil {
-		writeError(w, http.StatusInternalServerError, err)
-		return
+		if _, err := tx.ExecContext(
+			ctx,
+			`UPDATE latest_chair_locations SET latitude = ?, longitude = ? WHERE chair_id = ?`,
+			req.Latitude, req.Longitude, chair.ID,
+		); err != nil {
+			writeError(w, http.StatusInternalServerError, err)
+			return
+		}
 	}
 
 	// 総移動距離へ
