@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	crand "crypto/rand"
 	"database/sql"
 	"github.com/goccy/go-json"
@@ -85,7 +84,7 @@ func setup() http.Handler {
 	db = _db
 
 	mux := chi.NewRouter()
-	// mux.Use(middleware.Logger)
+	mux.Use(middleware.Logger)
 	mux.Use(middleware.Recoverer)
 	mux.HandleFunc("POST /api/initialize", postInitialize)
 
@@ -157,69 +156,7 @@ func postInitialize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := prepareLatestChairLocations(ctx); err != nil {
-		writeError(w, http.StatusInternalServerError, err)
-		return
-	}
-
 	writeJSON(w, http.StatusOK, postInitializeResponse{Language: "go"})
-}
-
-func prepareLatestChairLocations(ctx context.Context) error {
-	type chairDistanceDetail struct {
-		ChairID                string       `db:"chair_id"`
-		TotalDistance          int          `db:"total_distance"`
-		TotalDistanceUpdatedAt sql.NullTime `db:"total_distance_updated_at"`
-	}
-
-	chairDistances := []chairDistanceDetail{}
-	if err := db.SelectContext(ctx, &chairDistances, `
-SELECT id AS chair_id,
-       IFNULL(total_distance, 0) AS total_distance,
-       total_distance_updated_at
-FROM chairs
-       LEFT JOIN (SELECT chair_id,
-                          SUM(IFNULL(distance, 0)) AS total_distance,
-                          MAX(created_at)          AS total_distance_updated_at
-                   FROM (SELECT chair_id,
-                                created_at,
-                                ABS(latitude - LAG(latitude) OVER (PARTITION BY chair_id ORDER BY id)) +
-                                ABS(longitude - LAG(longitude) OVER (PARTITION BY chair_id ORDER BY id)) AS distance
-                         FROM chair_locations) tmp
-                   GROUP BY chair_id) distance_table ON distance_table.chair_id = chairs.id
-`); err != nil {
-		return err
-	}
-
-	for _, chair := range chairDistances {
-		if chair.TotalDistanceUpdatedAt.Valid {
-			_, err := db.ExecContext(ctx, `INSERT INTO chair_total_distances (chair_id, total_distance, updated_at) VALUES (?, ?, ?)`, chair.ChairID, chair.TotalDistance, chair.TotalDistanceUpdatedAt)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	latestChairLocations := []LatestChairLocation{}
-
-	if err := db.SelectContext(ctx, &latestChairLocations,
-		`SELECT cl.chair_id,cl.longitude,cl.latitude
-FROM chair_locations cl
-INNER JOIN (
-    SELECT chair_id, MAX(created_at) AS latest_created_at
-    FROM chair_locations
-    GROUP BY chair_id
-) latest_cl ON cl.chair_id = latest_cl.chair_id AND cl.created_at = latest_cl.latest_created_at`); err != nil {
-		return err
-	}
-	for _, loc := range latestChairLocations {
-		_, err := db.ExecContext(ctx, `INSERT INTO latest_chair_locations (chair_id, latitude, longitude) VALUES (?, ?, ?)`, loc.ChairID, loc.Latitude, loc.Longitude)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 type Coordinate struct {
