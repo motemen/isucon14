@@ -30,14 +30,29 @@ CREATE TABLE chairs
   model             TEXT         NOT NULL COMMENT '椅子のモデル',
   is_active         TINYINT(1)   NOT NULL COMMENT '配椅子受付中かどうか',
   access_token      VARCHAR(255) NOT NULL COMMENT 'アクセストークン',
-  total_rides_count INTEGER DEFAULT 0 NOT NULL COMMENT '乗車総数',
-  total_evaluation_avg FLOAT DEFAULT 0.0 NOT NULL COMMENT '平均評価',
   created_at   DATETIME(6)  NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '登録日時',
   updated_at   DATETIME(6)  NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT '更新日時',
   KEY (access_token),
   PRIMARY KEY (id)
 )
   COMMENT = '椅子情報テーブル';
+
+DROP TABLE IF EXISTS chair_stats;
+CREATE TABLE chair_stats
+(
+    id                VARCHAR(26)  NOT NULL COMMENT '椅子統計ID',
+    chair_id          VARCHAR(26)  NOT NULL COMMENT '椅子ID',
+    total_rides_count INTEGER DEFAULT 0 NOT NULL COMMENT '乗車総数',
+    total_evaluation_avg FLOAT DEFAULT 0.0 NOT NULL COMMENT '平均評価',
+    created_at   DATETIME(6)  NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '登録日時',
+    updated_at   DATETIME(6)  NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT '更新日時',
+    KEY (chair_id),
+    PRIMARY KEY (id)
+)
+    COMMENT = '椅子統計テーブル';
+
+total_rides_count INTEGER DEFAULT 0 NOT NULL COMMENT '乗車総数',
+  total_evaluation_avg FLOAT DEFAULT 0.0 NOT NULL COMMENT '平均評価',
 
 DROP TABLE IF EXISTS chair_locations;
 CREATE TABLE chair_locations
