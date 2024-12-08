@@ -40,10 +40,21 @@ func requestPaymentGatewayPostPayment(ctx context.Context, paymentGatewayURL str
 	retry := 0
 	for {
 		err := func() error {
-			req, err := http.NewRequestWithContext(ctx, http.MethodPost, paymentGatewayURL+"/payments", bytes.NewBuffer(b))
-			if err != nil {
-				return err
+			var req *http.Request
+			if retry < 1 {
+				var err error
+				req, err = http.NewRequestWithContext(ctx, http.MethodPost, paymentGatewayURL+"/payments", bytes.NewBuffer(b))
+				if err != nil {
+					return err
+				}
+			} else {
+				var err error
+				req, err = http.NewRequestWithContext(ctx, http.MethodGet, paymentGatewayURL+"/payments", nil)
+				if err != nil {
+					return err
+				}
 			}
+
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("Authorization", "Bearer "+token)
 			req.Header.Set("Idempotency-Key", idemKey)
@@ -55,7 +66,7 @@ func requestPaymentGatewayPostPayment(ctx context.Context, paymentGatewayURL str
 			defer res.Body.Close()
 
 			switch res.StatusCode {
-			case http.StatusNoContent:
+			case http.StatusOK, http.StatusNoContent:
 				return nil
 			case 400:
 				return errBadRequest
