@@ -29,16 +29,14 @@ var (
 	errPaymentProcessing = errors.New("payment processing")
 )
 
-func requestPaymentGatewayPostPayment(ctx context.Context, paymentGatewayURL string, token string, param *paymentGatewayPostPaymentRequest, retrieveRidesOrderByCreatedAtAsc func() ([]Ride, error)) error {
+func requestPaymentGatewayPostPayment(ctx context.Context, paymentGatewayURL string, token string, param *paymentGatewayPostPaymentRequest) error {
 	b, err := json.Marshal(param)
 	if err != nil {
 		return err
 	}
-	_ = retrieveRidesOrderByCreatedAtAsc
 
+	// see webapp/payment_mock/openapi.yaml for spec
 	idemKey := ulid.Make().String()
-	// 失敗したらとりあえずリトライ
-	// FIXME: 社内決済マイクロサービスのインフラに異常が発生していて、同時にたくさんリクエストすると変なことになる可能性あり
 	retry := 0
 	for {
 		err := func() error {
