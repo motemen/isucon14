@@ -4,7 +4,7 @@ import (
 	"context"
 	crand "crypto/rand"
 	"database/sql"
-	"encoding/json"
+	"github.com/goccy/go-json"
 	"fmt"
 	"log/slog"
 	"net"
