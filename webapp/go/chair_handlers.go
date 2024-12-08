@@ -112,6 +112,17 @@ func chairPostCoordinate(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tx.Rollback()
 
+	// デバッグ用だよ
+	chairLocationID := ulid.Make().String()
+	if _, err := tx.ExecContext(
+		ctx,
+		`INSERT INTO chair_locations (id, chair_id, latitude, longitude) VALUES (?, ?, ?, ?)`,
+		chairLocationID, chair.ID, req.Latitude, req.Longitude,
+	); err != nil {
+		writeError(w, http.StatusInternalServerError, err)
+		return
+	}
+
 	// 最後の位置を取得
 	var latestLocation LatestChairLocation
 	err = tx.GetContext(ctx, &latestLocation, "SELECT * FROM latest_chair_locations WHERE chair_id = ?", chair.ID)
