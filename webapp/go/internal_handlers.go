@@ -6,6 +6,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -56,6 +57,14 @@ func internalGetMatching(w http.ResponseWriter, r *http.Request) {
 }
 
 func doMatching() error {
+	hostname, err := os.Hostname()
+	if err != nil {
+		return err
+	}
+	if hostname != "ip-192-168-0-11" {
+		return nil
+	}
+
 	for {
 		if err := matching(); err != nil {
 			slog.Error("matching failed", slog.Any("error", err))
