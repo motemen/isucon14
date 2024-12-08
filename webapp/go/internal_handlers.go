@@ -94,6 +94,10 @@ func matching() error {
 		}
 	}
 
+	if !empty {
+		return nil
+	}
+
 	if _, err := db.ExecContext(ctx, "UPDATE rides SET chair_id = ? WHERE id = ?", matched.ID, ride.ID); err != nil {
 		return err
 	}
