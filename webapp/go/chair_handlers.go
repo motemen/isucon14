@@ -304,7 +304,7 @@ func chairGetNotification(w http.ResponseWriter, r *http.Request) {
 
 	if ride.Evaluation != nil {
 		go func() {
-			time.Sleep(500 * time.Millisecond)
+			time.Sleep(100 * time.Millisecond)
 			if _, err := db.ExecContext(ctx, `UPDATE chairs SET is_occupied = FALSE WHERE id = ?`, ride.ChairID); err != nil {
 				// writeError(w, http.StatusInternalServerError, err)
 
