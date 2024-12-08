@@ -44,13 +44,19 @@ func matching() error {
 	}
 
 	matched := &Chair{}
-	if err := db.GetContext(ctx, matched,
-		`SELECT * FROM chairs WHERE is_active = TRUE AND is_occupied = FALSE LIMIT 1`); err != nil {
+	for i := 0; i < 10; i++ {
+		if err := db.GetContext(ctx, matched,
+			`SELECT * FROM chairs WHERE is_active = TRUE AND is_occupied = FALSE LIMIT 1`); err != nil {
 
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil
+			if errors.Is(err, sql.ErrNoRows) {
+				continue
+			}
+			return err
 		}
-		return err
+		break
+	}
+	if matched.ID == "" {
+		return errors.New("no available chair")
 	}
 
 	tx, err := db.Beginx()
