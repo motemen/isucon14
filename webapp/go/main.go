@@ -2,8 +2,6 @@ package main
 
 import (
 	crand "crypto/rand"
-	"database/sql"
-	"github.com/goccy/go-json"
 	"fmt"
 	"log/slog"
 	"net"
@@ -11,6 +9,8 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+
+	"github.com/goccy/go-json"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -84,7 +84,7 @@ func setup() http.Handler {
 	db = _db
 
 	mux := chi.NewRouter()
-	mux.Use(middleware.Logger)
+	// mux.Use(middleware.Logger)
 	mux.Use(middleware.Recoverer)
 	mux.HandleFunc("POST /api/initialize", postInitialize)
 

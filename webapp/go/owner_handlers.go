@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/oklog/ulid/v2"
@@ -203,23 +204,41 @@ func ownerGetChairs(w http.ResponseWriter, r *http.Request) {
        is_active,
        created_at,
        updated_at,
-       IFNULL(total_distance, 0) AS total_distance,
-       total_distance_updated_at
+       0 AS total_distance,
+       NULL AS total_distance_updated_at
 FROM chairs
-       LEFT JOIN (SELECT chair_id,
-                          SUM(IFNULL(distance, 0)) AS total_distance,
-                          MAX(created_at)          AS total_distance_updated_at
-                   FROM (SELECT chair_id,
-                                created_at,
-                                ABS(latitude - LAG(latitude) OVER (PARTITION BY chair_id ORDER BY id)) +
-                                ABS(longitude - LAG(longitude) OVER (PARTITION BY chair_id ORDER BY id)) AS distance
-                         FROM chair_locations) tmp
-                   GROUP BY chair_id) distance_table ON distance_table.chair_id = chairs.id
 WHERE owner_id = ?
 `, owner.ID); err != nil {
 		writeError(w, http.StatusInternalServerError, err)
 		return
 	}
+
+	var wg sync.WaitGroup
+	for c, chair := range chairs {
+		wg.Add(1)
+		go func() {
+			chairLocations := []ChairLocation{}
+
+			var distanceUpdatedAt sql.NullTime
+			var totalDistance int
+			if err := db.SelectContext(ctx, &chairLocations, "SELECT * FROM chair_locations WHERE chair_id = ? ORDER BY id", chair.ID); err != nil {
+				writeError(w, http.StatusInternalServerError, err)
+				return
+			}
+
+			for i := 0; i < len(chairLocations)-1; i++ {
+				totalDistance += abs(chairLocations[i].Latitude-chairLocations[i+1].Latitude) + abs(chairLocations[i].Longitude-chairLocations[i+1].Longitude)
+				distanceUpdatedAt.Time = chairLocations[i+1].CreatedAt
+				distanceUpdatedAt.Valid = true
+			}
+
+			chairs[c].TotalDistance = totalDistance
+			chairs[c].TotalDistanceUpdatedAt = distanceUpdatedAt
+			wg.Done()
+		}()
+	}
+
+	wg.Wait()
 
 	res := ownerGetChairResponse{}
 	for _, chair := range chairs {
