@@ -302,16 +302,6 @@ func chairGetNotification(w http.ResponseWriter, r *http.Request) {
 		RetryAfterMs: 30,
 	})
 
-	if ride.Evaluation != nil {
-		go func() {
-			time.Sleep(100 * time.Millisecond)
-			if _, err := db.ExecContext(ctx, `UPDATE chairs SET is_occupied = FALSE WHERE id = ?`, ride.ChairID); err != nil {
-				// writeError(w, http.StatusInternalServerError, err)
-
-				return
-			}
-		}()
-	}
 }
 
 type postChairRidesRideIDStatusRequest struct {
