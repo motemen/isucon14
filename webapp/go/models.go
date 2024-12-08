@@ -11,6 +11,7 @@ type Chair struct {
 	Name        string    `db:"name"`
 	Model       string    `db:"model"`
 	IsActive    bool      `db:"is_active"`
+	IsOccupied  bool      `db:"is_occupied"`
 	AccessToken string    `db:"access_token"`
 	CreatedAt   time.Time `db:"created_at"`
 	UpdatedAt   time.Time `db:"updated_at"`
