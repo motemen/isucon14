@@ -574,7 +574,7 @@ func appPostRideEvaluatation(w http.ResponseWriter, r *http.Request) {
 
 	_, err = tx.ExecContext(
 		ctx,
-		`INSERT INTO chair_stats (chair_id, total_rides_count, total_evaluation_avg, chair_id) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE chair_id = ?`,
+		`INSERT INTO chair_stats (chair_id, total_rides_count, total_evaluation_avg, chair_id) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE chair_id = VALUES(chair_id)`,
 		ulid.Make().String(), ride.ChairID, 0, 0.0, ride.ChairID)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err)
