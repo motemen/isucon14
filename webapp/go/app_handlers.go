@@ -767,10 +767,10 @@ func appGetNotification(w http.ResponseWriter, r *http.Request) {
 
 func getChairStats(ctx context.Context, tx *sqlx.Tx, chairID string) (appGetNotificationResponseChairStats, error) {
 	stats := appGetNotificationResponseChairStats{}
-	err := tx.SelectContext(
+	err := tx.GetContext(
 		ctx,
 		&stats,
-		`SELECT * FROM chair_stats WHERE chair_id = ?`,
+		`SELECT total_rides_count, total_evaluation_avg FROM chair_stats WHERE chair_id = ?`,
 		chairID,
 	)
 	if err != nil {
