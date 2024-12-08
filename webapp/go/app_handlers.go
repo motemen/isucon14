@@ -632,6 +632,17 @@ func appPostRideEvaluatation(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, &appPostRideEvaluationResponse{
 		CompletedAt: ride.UpdatedAt.UnixMilli(),
 	})
+
+	go func() {
+		time.Sleep(200 * time.Millisecond)
+		ctx := context.Background()
+		if _, err := db.ExecContext(ctx, `UPDATE chairs SET is_occupied = FALSE WHERE id = ?`, ride.ChairID); err != nil {
+			// writeError(w, http.StatusInternalServerError, err)
+
+			return
+		}
+	}()
+
 }
 
 type appGetNotificationResponse struct {

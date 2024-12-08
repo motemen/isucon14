@@ -44,29 +44,32 @@ func matching() error {
 	}
 
 	matched := &Chair{}
-	empty := false
 	for i := 0; i < 10; i++ {
-		if err := db.GetContext(ctx, matched, "SELECT * FROM chairs WHERE is_active = TRUE ORDER BY RAND() LIMIT 1"); err != nil {
+		if err := db.GetContext(ctx, matched,
+			`SELECT * FROM chairs WHERE is_active = TRUE AND is_occupied = FALSE LIMIT 1`); err != nil {
+
 			if errors.Is(err, sql.ErrNoRows) {
-				return nil
+				continue
 			}
 			return err
 		}
-
-		if err := db.GetContext(ctx, &empty, "SELECT COUNT(*) = 0 FROM (SELECT COUNT(chair_sent_at) = 6 AS completed FROM ride_statuses WHERE ride_id IN (SELECT id FROM rides WHERE chair_id = ?) GROUP BY ride_id) is_completed WHERE completed = FALSE", matched.ID); err != nil {
-			return err
-		}
-		if empty {
-			break
-		}
+		break
+	}
+	if matched.ID == "" {
+		return errors.New("no available chair")
 	}
 
-	if !empty {
-		return nil
-	}
-
-	if _, err := db.ExecContext(ctx, "UPDATE rides SET chair_id = ? WHERE id = ?", matched.ID, ride.ID); err != nil {
+	tx, err := db.Beginx()
+	if err != nil {
 		return err
 	}
-	return nil
+	defer tx.Rollback()
+
+	if _, err := tx.ExecContext(ctx, "UPDATE rides SET chair_id = ? WHERE id = ?", matched.ID, ride.ID); err != nil {
+		return err
+	}
+	if _, err := tx.ExecContext(ctx, "UPDATE chairs SET is_occupied = TRUE WHERE id = ?", matched.ID); err != nil {
+		return err
+	}
+	return tx.Commit()
 }

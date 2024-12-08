@@ -301,6 +301,7 @@ func chairGetNotification(w http.ResponseWriter, r *http.Request) {
 		},
 		RetryAfterMs: 30,
 	})
+
 }
 
 type postChairRidesRideIDStatusRequest struct {
