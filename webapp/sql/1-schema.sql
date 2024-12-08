@@ -34,6 +34,7 @@ CREATE TABLE chairs
   total_evaluation_avg FLOAT DEFAULT 0.0 NOT NULL COMMENT '平均評価',
   created_at   DATETIME(6)  NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '登録日時',
   updated_at   DATETIME(6)  NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT '更新日時',
+  KEY (access_token),
   PRIMARY KEY (id)
 )
   COMMENT = '椅子情報テーブル';
@@ -92,6 +93,7 @@ CREATE TABLE rides
   evaluation            INTEGER     NULL     COMMENT '評価',
   created_at            DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '要求日時',
   updated_at            DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT '状態更新日時',
+  KEY (chair_id),
   PRIMARY KEY (id)
 )
   COMMENT = 'ライド情報テーブル';
@@ -134,6 +136,7 @@ CREATE TABLE coupons
   discount   INTEGER      NOT NULL COMMENT '割引額',
   created_at DATETIME(6)  NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '付与日時',
   used_by    VARCHAR(26)  NULL COMMENT 'クーポンが適用されたライドのID',
+  KEY (used_by),
   PRIMARY KEY (user_id, code)
 )
   COMMENT 'クーポンテーブル';
