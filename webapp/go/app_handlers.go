@@ -768,7 +768,7 @@ func appGetNotification(w http.ResponseWriter, r *http.Request) {
 func getChairStats(ctx context.Context, tx *sqlx.Tx, chairID string) (appGetNotificationResponseChairStats, error) {
 	stats := appGetNotificationResponseChairStats{
 		TotalRidesCount:    0,
-		TotalEvaluationAvg: float64(0),
+		TotalEvaluationAvg: 0.0,
 	}
 
 	err := tx.GetContext(
