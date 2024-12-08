@@ -574,9 +574,8 @@ func appPostRideEvaluatation(w http.ResponseWriter, r *http.Request) {
 
 	_, err = tx.ExecContext(
 		ctx,
-		`INSERT INTO chair_stats (chair_id, total_rides_count, total_evaluation_avg) VALUES(?, ?, ?) 
-ON DUPLICATE KEY UPDATE total_rides_count = total_rides_count + VALUES(total_rides_count), total_evaluation_avg = (total_evaluation_avg + VALUES(total_evaluation_avg)) / (total_rides_count + VALUES(total_rides_count))`,
-		ride.ChairID, 1, float64(*ride.Evaluation))
+		`INSERT INTO chair_stats (chair_id, total_rides_count, total_evaluation) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE total_rides_count = total_rides_count + VALUES(total_rides_count), total_evaluation = total_evaluation + VALUES(total_evaluation)`,
+		ride.ChairID, 1, ride.Evaluation)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err)
 		return
@@ -659,8 +658,13 @@ type appGetNotificationResponseChair struct {
 }
 
 type appGetNotificationResponseChairStats struct {
-	TotalRidesCount    int     `json:"total_rides_count" db:"total_rides_count"`
-	TotalEvaluationAvg float64 `json:"total_evaluation_avg" db:"total_evaluation_avg"`
+	TotalRidesCount    int     `json:"total_rides_count"`
+	TotalEvaluationAvg float64 `json:"total_evaluation_avg"`
+}
+
+type appGetNotificationResponseChairStatsDb struct {
+	TotalRidesCount int `db:"total_rides_count"`
+	TotalEvaluation int `db:"total_evaluation"`
 }
 
 func appGetNotification(w http.ResponseWriter, r *http.Request) {
@@ -771,9 +775,14 @@ func getChairStats(ctx context.Context, tx *sqlx.Tx, chairID string) (appGetNoti
 		TotalEvaluationAvg: 0.0,
 	}
 
+	dbstats := appGetNotificationResponseChairStatsDb{
+		TotalRidesCount: 0,
+		TotalEvaluation: 0,
+	}
+
 	err := tx.GetContext(
 		ctx,
-		&stats,
+		&dbstats,
 		`SELECT total_rides_count, total_evaluation_avg FROM chair_stats WHERE chair_id = ?`,
 		chairID,
 	)
@@ -783,6 +792,11 @@ func getChairStats(ctx context.Context, tx *sqlx.Tx, chairID string) (appGetNoti
 			return stats, nil
 		}
 		return stats, err
+	}
+
+	stats.TotalRidesCount = dbstats.TotalRidesCount
+	if stats.TotalRidesCount > 0 {
+		stats.TotalEvaluationAvg = float64(dbstats.TotalEvaluation) / float64(dbstats.TotalRidesCount)
 	}
 
 	return stats, nil

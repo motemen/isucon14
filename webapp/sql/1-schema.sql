@@ -42,7 +42,7 @@ CREATE TABLE chair_stats
 (
     chair_id          VARCHAR(26)  NOT NULL COMMENT '椅子ID',
     total_rides_count INTEGER DEFAULT 0 NOT NULL COMMENT '乗車総数',
-    total_evaluation_avg FLOAT DEFAULT 0.0 NOT NULL COMMENT '平均評価',
+    total_evaluation INTEGER DEFAULT 0 NOT NULL COMMENT '総評価',
     PRIMARY KEY (chair_id)
 )
     COMMENT = '椅子統計テーブル';
