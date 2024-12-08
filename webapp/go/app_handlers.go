@@ -779,6 +779,9 @@ func getChairStats(ctx context.Context, tx *sqlx.Tx, chairID string) (appGetNoti
 	)
 
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return stats, nil
+		}
 		return stats, err
 	}
 
