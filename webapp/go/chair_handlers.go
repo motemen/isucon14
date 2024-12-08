@@ -277,6 +277,13 @@ func chairGetNotification(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if ride.Evaluation != nil {
+		if _, err := tx.ExecContext(ctx, `UPDATE chairs SET is_occupied = FALSE WHERE id = ?`, ride.ChairID); err != nil {
+			writeError(w, http.StatusInternalServerError, err)
+			return
+		}
+	}
+
 	if err := tx.Commit(); err != nil {
 		writeError(w, http.StatusInternalServerError, err)
 		return
