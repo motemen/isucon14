@@ -17,14 +17,30 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
+	"golang.org/x/sync/errgroup"
 )
 
 var db *sqlx.DB
 
 func main() {
+	if err := doApp(); err != nil {
+		slog.Error("failed to do", slog.Any("error", err))
+		os.Exit(1)
+	}
+}
+
+func doApp() error {
 	mux := setup()
 	slog.Info("Listening on :8080")
-	http.ListenAndServe(":8080", mux)
+
+	eg := errgroup.Group{}
+	eg.Go(func() error {
+		return http.ListenAndServe(":8080", mux)
+	})
+	eg.Go(func() error {
+		return doMatching()
+	})
+	return eg.Wait()
 }
 
 func setup() http.Handler {
