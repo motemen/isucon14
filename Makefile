@@ -63,11 +63,13 @@ deploy-db: scp-db restart-db
 
 scp-db:
 	ssh isu01 "sudo dd of=/etc/mysql/mysql.conf.d/mysqld.cnf" < ./etc/mysql/mysql.conf.d/mysqld.cnf
-# 	ssh isu02 "sudo dd of=/etc/mysql/mysql.conf.d/mysqld.cnf" < ./etc/mysql/mysql.conf.d/mysqld.cnf
-# 	ssh isu03 "sudo dd of=/etc/mysql/mysql.conf.d/mysqld.cnf" < ./etc/mysql/mysql.conf.d/mysqld.cnf
+	ssh isu02 "sudo dd of=/etc/mysql/mysql.conf.d/mysqld.cnf" < ./etc/mysql/mysql.conf.d/mysqld.cnf
+	ssh isu03 "sudo dd of=/etc/mysql/mysql.conf.d/mysqld.cnf" < ./etc/mysql/mysql.conf.d/mysqld.cnf
 
 restart-db:
 	ssh isu01 "sudo systemctl restart mysql.service" & \
+	ssh isu02 "sudo systemctl restart mysql.service" & \
+	ssh isu03 "sudo systemctl restart mysql.service" & \
 	wait
 
 # 以下、まだ
