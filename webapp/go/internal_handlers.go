@@ -65,8 +65,17 @@ func matching() error {
 		return nil
 	}
 
-	if _, err := db.ExecContext(ctx, "UPDATE rides SET chair_id = ? WHERE id = ?", matched.ID, ride.ID); err != nil {
+	tx, err := db.Beginx()
+	if err != nil {
 		return err
 	}
-	return nil
+	defer tx.Rollback()
+
+	if _, err := tx.ExecContext(ctx, "UPDATE rides SET chair_id = ? WHERE id = ?", matched.ID, ride.ID); err != nil {
+		return err
+	}
+	if _, err := tx.ExecContext(ctx, "UPDATE chairs SET is_occupied = TRUE WHERE id = ?", matched.ID); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
