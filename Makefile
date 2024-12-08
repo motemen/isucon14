@@ -9,7 +9,7 @@ always:
 $(APP): webapp/go/*.go always
 	cd webapp/go && go get && GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -o ../../$(APP)
 
-deploy: $(APP) stop scp scp-env start
+deploy: $(APP) stop scp scp-sql scp-env start
 # deploy: deploy-nginx $(APP) stop scp scp-env scp-sql restart-redis start
 # deploy: stop reset-logs scp scp-sql scp-docker-compose start
 
@@ -58,6 +58,17 @@ reload-nginx:
 	ssh isu01 "sudo systemctl reload nginx.service"
 
 deploy-nginx: scp-nginx reload-nginx
+
+deploy-db: scp-db restart-db
+
+scp-db:
+	ssh isu01 "sudo dd of=/etc/mysql/mysql.conf.d/mysqld.cnf" < ./etc/mysql/mysql.conf.d/mysqld.cnf
+# 	ssh isu02 "sudo dd of=/etc/mysql/mysql.conf.d/mysqld.cnf" < ./etc/mysql/mysql.conf.d/mysqld.cnf
+# 	ssh isu03 "sudo dd of=/etc/mysql/mysql.conf.d/mysqld.cnf" < ./etc/mysql/mysql.conf.d/mysqld.cnf
+
+restart-db:
+	ssh isu01 "sudo systemctl restart mysql.service" & \
+	wait
 
 # 以下、まだ
 # redis
