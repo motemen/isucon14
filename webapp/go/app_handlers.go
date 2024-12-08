@@ -767,7 +767,7 @@ func getChairStats(ctx context.Context, tx *sqlx.Tx, chairID string) (appGetNoti
 	err := tx.SelectContext(
 		ctx,
 		&rides,
-		`SELECT * FROM rides WHERE chair_id = ? ORDER BY updated_at DESC`,
+		`SELECT * FROM rides WHERE chair_id = ? ORDER BY id DESC`,
 		chairID,
 	)
 	if err != nil {
