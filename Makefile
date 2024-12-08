@@ -9,7 +9,7 @@ always:
 $(APP): webapp/go/*.go always
 	cd webapp/go && go get && GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -o ../../$(APP)
 
-deploy: $(APP) stop scp scp-env start
+deploy: $(APP) stop scp scp-sql scp-env start
 # deploy: deploy-nginx $(APP) stop scp scp-env scp-sql restart-redis start
 # deploy: stop reset-logs scp scp-sql scp-docker-compose start
 
@@ -49,17 +49,30 @@ start:
 	ssh isu03 "sudo systemctl start $(APP)-go.service" & \
 	wait
 
-# 以下、まだ
 # nginx
 scp-nginx:
 	ssh isu01 "sudo dd of=/etc/nginx/nginx.conf" < ./etc/nginx/nginx.conf
-	ssh isu01 "sudo dd of=/etc/nginx/sites-enabled/isupipe.conf" < ./etc/nginx/sites-enabled/isupipe.conf
+	ssh isu01 "sudo dd of=/etc/nginx/sites-available/$(APP).conf" < ./etc/nginx/sites-available/$(APP).conf
 
 reload-nginx:
 	ssh isu01 "sudo systemctl reload nginx.service"
 
 deploy-nginx: scp-nginx reload-nginx
 
+deploy-db: scp-db restart-db
+
+scp-db:
+	ssh isu01 "sudo dd of=/etc/mysql/mysql.conf.d/mysqld.cnf" < ./etc/mysql/mysql.conf.d/mysqld.cnf
+	ssh isu02 "sudo dd of=/etc/mysql/mysql.conf.d/mysqld.cnf" < ./etc/mysql/mysql.conf.d/mysqld.cnf
+	ssh isu03 "sudo dd of=/etc/mysql/mysql.conf.d/mysqld.cnf" < ./etc/mysql/mysql.conf.d/mysqld.cnf
+
+restart-db:
+	ssh isu01 "sudo systemctl restart mysql.service" & \
+	ssh isu02 "sudo systemctl restart mysql.service" & \
+	ssh isu03 "sudo systemctl restart mysql.service" & \
+	wait
+
+# 以下、まだ
 # redis
 
 restart-redis:
