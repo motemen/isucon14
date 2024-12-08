@@ -371,7 +371,7 @@ func appPostRides(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// 無ければ他のクーポンを付与された順番に使う
-			if err := tx.GetContext(ctx, &coupon, "SELECT * FROM coupons WHERE user_id = ? AND used_by IS NULL ORDER BY id LIMIT 1 FOR UPDATE", user.ID); err != nil {
+			if err := tx.GetContext(ctx, &coupon, "SELECT * FROM coupons WHERE user_id = ? AND used_by IS NULL ORDER BY created_at LIMIT 1 FOR UPDATE", user.ID); err != nil {
 				if !errors.Is(err, sql.ErrNoRows) {
 					writeError(w, http.StatusInternalServerError, err)
 					return
@@ -398,7 +398,7 @@ func appPostRides(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		// 他のクーポンを付与された順番に使う
-		if err := tx.GetContext(ctx, &coupon, "SELECT * FROM coupons WHERE user_id = ? AND used_by IS NULL ORDER BY id LIMIT 1 FOR UPDATE", user.ID); err != nil {
+		if err := tx.GetContext(ctx, &coupon, "SELECT * FROM coupons WHERE user_id = ? AND used_by IS NULL ORDER BY created_at LIMIT 1 FOR UPDATE", user.ID); err != nil {
 			if !errors.Is(err, sql.ErrNoRows) {
 				writeError(w, http.StatusInternalServerError, err)
 				return
@@ -987,7 +987,7 @@ func calculateDiscountedFare(ctx context.Context, tx *sqlx.Tx, userID string, ri
 			}
 
 			// 無いなら他のクーポンを付与された順番に使う
-			if err := tx.GetContext(ctx, &coupon, "SELECT * FROM coupons WHERE user_id = ? AND used_by IS NULL ORDER BY id LIMIT 1", userID); err != nil {
+			if err := tx.GetContext(ctx, &coupon, "SELECT * FROM coupons WHERE user_id = ? AND used_by IS NULL ORDER BY created_at LIMIT 1", userID); err != nil {
 				if !errors.Is(err, sql.ErrNoRows) {
 					return 0, err
 				}
