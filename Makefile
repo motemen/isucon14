@@ -49,17 +49,17 @@ start:
 	ssh isu03 "sudo systemctl start $(APP)-go.service" & \
 	wait
 
-# 以下、まだ
 # nginx
 scp-nginx:
 	ssh isu01 "sudo dd of=/etc/nginx/nginx.conf" < ./etc/nginx/nginx.conf
-	ssh isu01 "sudo dd of=/etc/nginx/sites-enabled/isupipe.conf" < ./etc/nginx/sites-enabled/isupipe.conf
+	ssh isu01 "sudo dd of=/etc/nginx/sites-available/$(APP).conf" < ./etc/nginx/sites-available/$(APP).conf
 
 reload-nginx:
 	ssh isu01 "sudo systemctl reload nginx.service"
 
 deploy-nginx: scp-nginx reload-nginx
 
+# 以下、まだ
 # redis
 
 restart-redis:
