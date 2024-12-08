@@ -654,8 +654,8 @@ type appGetNotificationResponseChair struct {
 }
 
 type appGetNotificationResponseChairStats struct {
-	TotalRidesCount    int     `json:"total_rides_count"`
-	TotalEvaluationAvg float64 `json:"total_evaluation_avg"`
+	TotalRidesCount    int     `json:"total_rides_count" db:"total_rides_count"`
+	TotalEvaluationAvg float64 `json:"total_evaluation_avg" db:"total_evaluation_avg"`
 }
 
 func appGetNotification(w http.ResponseWriter, r *http.Request) {
