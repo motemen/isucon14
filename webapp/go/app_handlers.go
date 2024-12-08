@@ -606,7 +606,7 @@ func appPostRideEvaluatation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := requestPaymentGatewayPostPayment(ctx, paymentGatewayURL, paymentToken.Token, paymentGatewayRequest); err != nil {
+	if err := requestPaymentGatewayPostPayment(ctx, paymentGatewayURL, paymentToken.Token, paymentGatewayRequest, rideID); err != nil {
 		if errors.Is(err, erroredUpstream) {
 			writeError(w, http.StatusBadGateway, err)
 			return

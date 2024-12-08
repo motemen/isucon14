@@ -7,8 +7,6 @@ import (
 	"errors"
 	"net/http"
 	"time"
-
-	"github.com/oklog/ulid/v2"
 )
 
 var erroredUpstream = errors.New("errored upstream")
@@ -29,14 +27,13 @@ var (
 	errPaymentProcessing = errors.New("payment processing")
 )
 
-func requestPaymentGatewayPostPayment(ctx context.Context, paymentGatewayURL string, token string, param *paymentGatewayPostPaymentRequest) error {
+func requestPaymentGatewayPostPayment(ctx context.Context, paymentGatewayURL string, token string, param *paymentGatewayPostPaymentRequest, rideID string) error {
 	b, err := json.Marshal(param)
 	if err != nil {
 		return err
 	}
 
 	// see webapp/payment_mock/openapi.yaml for spec
-	idemKey := ulid.Make().String()
 	retry := 0
 	for {
 		err := func() error {
@@ -57,7 +54,7 @@ func requestPaymentGatewayPostPayment(ctx context.Context, paymentGatewayURL str
 
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("Authorization", "Bearer "+token)
-			req.Header.Set("Idempotency-Key", idemKey)
+			req.Header.Set("Idempotency-Key", rideID)
 
 			res, err := http.DefaultClient.Do(req)
 			if err != nil {
